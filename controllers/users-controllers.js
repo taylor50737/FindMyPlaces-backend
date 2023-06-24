@@ -2,6 +2,7 @@ const { v4: uuid } = require('uuid');
 const { validationResult } = require('express-validator');
 
 const HttpError = require('../models/http-error');
+const User = require('../models/user');
 
 const DUMMY_USERS = [
   {
@@ -16,28 +17,43 @@ const getUsers = (req, res, next) => {
   res.json({ users: DUMMY_USERS });
 };
 
-const signup = (req, res, next) => {
+const signup = async (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    throw new HttpError('Invalid inputs passed, please check your data.');
+    return next(new HttpError('Invalid inputs passed, please check your data.', 422));
   }
-  const { name, email, password } = res.json;
+  const { name, email, password, places } = req.body;
 
-  const hasUser = DUMMY_USERS.find((u) => u.email === email);
-  if (hasUser) {
-    throw new HttpError('Could not create user email already exists', 422);
+  let existingUser;
+  try {
+    existingUser = await User.findOne({ email: email });
+  } catch (err) {
+    const error = new HttpError('Signing up failed, please try again later.', 500);
+    return next(error);
   }
 
-  const createdUser = {
-    id: uuid(),
+  if (existingUser) {
+    const error = new HttpError('User exists already, please login instead.', 422);
+    return next(error);
+  }
+
+  const createdUser = new User({
     name,
     email,
+    image:
+      'https://www.thesprucepets.com/thmb/APYdMl_MTqwODmH4dDqaY5q0UoE=/750x0/filters:no_upscale():max_bytes(150000):strip_icc():format(webp)/all-about-tabby-cats-552489-hero-a23a9118af8c477b914a0a1570d4f787.jpg',
     password,
-  };
+    places,
+  });
 
-  DUMMY_USERS.push(createdUser);
+  try {
+    await createdUser.save();
+  } catch (err) {
+    const error = new HttpError('Signing up failed, please try again.', 500);
+    return next(error);
+  }
 
-  res.status(201).json({ user: createdUser });
+  res.status(201).json({ user: createdUser.toObject({ getters: true }) });
 };
 
 const login = (req, res, next) => {
