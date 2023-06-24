@@ -128,20 +128,14 @@ const deletePlace = async (req, res, next) => {
   try {
     place = await Place.findById(placeId);
   } catch (err) {
-    const error = new HttpError(
-      'Something went wrong, could not delete place.',
-      500
-    );
+    const error = new HttpError('Something went wrong, could not delete place.', 500);
     return next(error);
   }
 
   try {
     await place.deleteOne();
   } catch (err) {
-    const error = new HttpError(
-      'Something went wrong, could not delete place.',
-      500
-    );
+    const error = new HttpError('Something went wrong, could not delete place.', 500);
     return next(error);
   }
 
