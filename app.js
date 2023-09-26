@@ -38,7 +38,7 @@ app.use((error, req, res, next) => {
 
 mongoose
   .connect(
-    'mongodb+srv://user:HyUoCqdBY2FBD2dy@cluster0.fn9cabk.mongodb.net/mern?retryWrites=true&w=majority',
+    'mongodb+srv://user:YfIQhYpO5f7DmF7s@cluster0.fn9cabk.mongodb.net/mern?retryWrites=true&w=majority',
   )
   .then(() => {
     app.listen(8080);
